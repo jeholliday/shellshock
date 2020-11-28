@@ -1,4 +1,4 @@
-This report on the Shellshock software vulnerability was created as part of a final project for
+This report on the Shellshock security vulnerabilities was created as part of a final project for
 CS3891-Cybersecurity at Vanderbilt University in Fall 2020.
 
 # Introduction
@@ -10,13 +10,13 @@ inputs to a vulnerable server that gave them complete control of the system.
 
 The Bourne-Again Shell (Bash) is a commonly used command shell on many different Unix-based
 operating systems. Versions of Bash exist for Linux, BSD, macOS, and more. The same vulnerability
-was able to so many of these operating systems because all of the versions shared much of the same
-codebase. As a shell, Bash is used to execute commands on a computer. Bash can be used either
+was able to affect many of these operating systems because they shared the codebase that contained
+the bugs. As a shell, Bash is used to execute commands on a computer. Bash can be used either
 interactively by a user to type in commands or non-interactively by other computer programs. The
 commonality of Bash has resulted in many other programs relying on Bash to run commands
-non-interactively. Programs such as a web browser might use Bash in the background without a user
-knowing. Using Bash can help some programs be more portable across operating systems but also helped
-Shellshock affect a wide variety of systems.
+non-interactively. Programs such as a web browser might by design use Bash in the background without
+a user knowing. Using Bash can help some programs be more portable across operating systems but
+also helped Shellshock affect a wide variety of systems.
 
 Injection vulnerabilities allow an attacker to create malicious inputs that alter the expected
 behavior of a system. Most computer systems follow a pattern of accepting inputs, processing the
@@ -28,24 +28,23 @@ a remote system, it is called Remote Code Execution (RCE). RCE is the worst case
 injection vulnerability because it allows an attacker to do anything they want to a system without
 needing physical access.
 
-Shellshock makes remote achieving RCE as simple as:
+Shellshock makes achieving RCE as simple as:
 1. Find a program that accepts input over the Internet
 2. The input is processed and stored in an environment variable
 3. The program runs Bash
 
 It turns out that this simple vulnerability and steps are applicable to many different common
 applications because so many depend on Bash to run commands. Therefore, this one vulnerability in
-Bash creates countless vulnerabilities in other programs. This report will examine exactly how
-Shellshock works and demonstrate how it can be used to exploit well-known services.
+Bash creates countless vulnerabilities in other programs.
 
 # Breaking down the Vulnerabilities
 Shellshock consists of several different vulnerabilities that relate to how Bash handles environment
 variables. These variables allow a user or script to define a value once and then reuse that value
 again by giving it's name. An environment variable definition in Bash might look like
-`GREETING="Hello, World"`. After defining this variable, the value `Hello, World!` can be used again
+`GREETING="Hello, World"`. After defining this variable, the value `Hello, World` can be used again
 by just typing `$GREETING`. Programs frequently pass arguments or configuration values to Bash by
 assigning variables before invoking it. However, environment variables can also accidentally leak
-into Bash because by default any environment variables set in the original processes environment
+into Bash because by default any environment variables set in the original process's environment
 will be set in Bash's environment. This behavior can cause the unintended consequences of leaking
 sensitive information and create potential vulnerabilities.
 
@@ -201,14 +200,14 @@ of available IP addresses, and the offer will contain an IP address along with o
 options. The client will accept one of the offers it receives and can now use that address to
 communicate on the network.
 
-On Unix operating systems, the `dhclient` command provides methods for automating the process of
+On Unix-based operating systems, the `dhclient` command provides methods for automating the process of
 requesting an address and configuring a network interface to use it. `dhclient` includes a hook
 system, called `dhclient-script` to allow other programs to register callbacks for when a DHCP offer
 is accepted or an address is released. On Ubuntu 12.04, the `/etc/dhcp/dhclient-enter-hooks.d` and
 `/etc/dhcp/dhclient-exit-hooks.d` directories contain the scripts to be automatically executed by
 the hooks. Each script is automatically executed using Bash and the details of the DHCP offer are
-stored in environment variables. This feature allows seamlessly connecting to a network but creates
-the potential for security vulnerabilities.
+stored in environment variables. This feature allows seamlessly connecting to a network but also
+creates the potential for security vulnerabilities.
 
 A malicious DHCP server could exploit `dhclient-script` using Shellshock to achieve remote code
 execution on DHCP clients. Any values included in the DHCP offer to a client will be passed into
@@ -224,7 +223,7 @@ The first step to creating a malicious DHCP server is to find a place to include
 DHCP offer. The work of security researchers identified option 114 as one possible way [6]. Option
 114 is described as the "default url" field. This option is widely supported by DHCP clients despite
 not serving any purpose [7]. It is the perfect place to include our payload because it is a string
-field and clients will recognize it as a valid option, but other options could also likely be used.
+field and clients will recognize it as a valid option.
 
 ### Server Configuration
 This demonstration was once again designed for Ubuntu 12.04, but it could be modified to work on
@@ -294,9 +293,9 @@ CGI scripts were a common method for implementing a web server backend. A CGI sc
 specific directory on the server and is executed whenever a client requests a specific endpoint. The
 resulting output to stdout will be then be returned to the client as an HTTP response. When invoking
 the script, information about the request is communicated using environment variables. If a CGI
-script is written in Bash script, then it can be vulnerable to Shellshock because an attacker can
-include a Shellshock payload in an HTML request, and Apache will automatically include the payload
-in an environment variable.
+script is written in Bash script, then it can be vulnerable to a Shellshock injection attack. An
+attacker can include a Shellshock payload in an HTML request, and Apache will automatically include
+the payload in an environment variable.
 
 ### Installing Apache
 Install Apache and Curl [12]
@@ -355,7 +354,7 @@ vulnerability and demonstrates the importance of only giving services the minimu
 <div style="text-align:center">
     <img src="apache-exploit.png"/>
     <br/>
-    <p>Demonstration of Apache exploit that executes the id command.</p>
+    <p>Demonstration of an Apache exploit that executes the id command.</p>
 </div>
 
 # Conclusion
@@ -373,14 +372,13 @@ Examining how and why the Shellshock vulnerabilities were created can help preve
 vulnerabilities in the future. When asked why he believed Shellshock was not discovered earlier,
 the original researcher said that he believed the flaw would have been obvious to any security
 researcher [2]. Many software developers do not consider the security implications of their design
-and implementation decisions. If someone had taken the time to identify all and examine of the input
+and implementation decisions. If someone had taken the time to identify all and examine all of the input
 sources to Bash, they probably could have discovered this flaw in the handling of environment
 variables. The researcher also believes that professionals writing Bash scripts focused too much on
 the security of their code and not enough on the security of the interpreter [2]. Shellshock was
-able to impact so many different programs that relied on Bash because of how so many programs use
-environment variables without considering the security implications. Shellshock teaches us that
-developers need to be aware of all of the inputs sources to their systems and ensure that each input
-has assumptions about it validated.
+able to impact so many different programs because they all blindly trusted Bash and user inputs. 
+Shellshock teaches us that developers need to be aware of all of the inputs sources to their systems
+and validate all assumptions about inputs.
 
 # Sources
 1. [OWASP presentation with explanation and demonstration](https://owasp.org/www-pdf-archive/Shellshock_-_Tudor_Enache.pdf)
