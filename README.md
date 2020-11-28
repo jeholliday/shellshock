@@ -1,3 +1,6 @@
+This report on the Shellshock software vulnerability was created as part of a final project for
+CS3891-Cybersecurity at Vanderbilt University in Fall 2020.
+
 # Introduction
 In 2014, security researchers found a series of injection vulnerabilities in Bash that came to be
 known as Shellshock. Several of the vulnerabilities had been in Bash for over 25 years before they
