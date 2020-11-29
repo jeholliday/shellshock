@@ -1,5 +1,5 @@
-This report on the Shellshock security vulnerabilities was created as part of a final project for
-CS3891-Cybersecurity at Vanderbilt University in Fall 2020.
+This report the Shellshock was created as part of a final project for CS3891-Cybersecurity at
+Vanderbilt University in Fall 2020.
 
 # Introduction
 In 2014, security researchers found a series of injection vulnerabilities in Bash that came to be
@@ -50,7 +50,7 @@ sensitive information and create potential vulnerabilities.
 
 Bash scripts can define functions that contain sections of code that can be reused. A function is
 properly defined using the syntax, `hello() { echo "Hello"; }` which would define a function called
-`hello` that would print `Hello`. Before Shellshock, Bash scripts stored functions as environment
+`hello` that would print `Hello`. Before Shellshock, Bash scripts could store functions as environment
 variables. Therefore, the same function could equivalently be defined in an environment variable
 with `hello=() { echo "Hello"; }`. This behavior allowed Bash scripts to export functions as
 environment variables and allow a sub-shell to use them. However, this feature has been removed and
