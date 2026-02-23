@@ -1,4 +1,4 @@
-This report the Shellshock was created as part of a final project for CS3891-Cybersecurity at
+This report on Shellshock was created as part of a final project for CS3891-Cybersecurity at
 Vanderbilt University in Fall 2020.
 
 # Introduction
@@ -393,4 +393,5 @@ and validate all assumptions about inputs.
 10. [NetworkManager doesn't use dhclient-script hooks](https://andytson.com/blog/2009/03/workaround-so-networkmanager-runs-dhclient-hooks/)
 11. [Apache Tutorial: Dynamic Content with CGI](http://httpd.apache.org/docs/2.4/howto/cgi.html)
 12. [Install Apache with CGI on Ubuntu](https://code-maven.com/set-up-cgi-with-apache)
+
 13. [Exploiting Apache CGI with Shellshock](https://www.surevine.com/shellshocked-a-quick-demo-of-how-easy-it-is-to-exploit/)
